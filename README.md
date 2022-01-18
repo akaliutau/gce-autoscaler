@@ -1,6 +1,6 @@
 # About
 
-This is a research project to study autoscaling on GCE
+This is a research project to study auto-scaling on GCE
 
 
 # Implementation
@@ -42,22 +42,15 @@ Here the sequence of steps to perform (most of these steps will be covered in ne
 * Use Terraform to define infrastructure-as-a-code which includes a Google Cloud k8s instances and PubSub topics/subscriptions.
 * Deploy a infrastructure using Terraform to Google Cloud
 
-
-gcloud compute --project "message-multi-processor" instance-groups managed recreate-instances  "processors-1" --zone "europe-west2-c" --instances "processors-1-bjd9"
-
-
 # Requirements
 
-* gcloud (see [2])
+* gcloud
 * Java 11 SDK
-* terraform (see [4])
+* terraform
 * ssh
 
 
 # Environment settings
-
-The Spring Cloud GCP Core Boot starter can be auto-configured using properties from the properties file (`src/main/resources/application.yaml`) 
-which always have precedence over the Spring Boot configuration.
 
 The GCP project ID is auto-configured from the `GOOGLE_CLOUD_PROJECT` environment variable, among several other sources. 
 
