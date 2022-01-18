@@ -17,7 +17,7 @@ module "gce-container" {
 
 resource "google_compute_instance_template" "processor_template" {
   name         = "proc-template-1"
-  machine_type = "e2-small"
+  machine_type = "e2-micro"
 
   disk {
     source_image = join("/", [ "cos-cloud", reverse(split("/", module.gce-container.source_image))[0]])
@@ -39,6 +39,8 @@ resource "google_compute_instance_template" "processor_template" {
     }
   }
 
+  tags = ["allow-firewall-check", "http-server"]
+
   metadata_startup_script = "#!/bin/bash\ncurl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh\nsudo bash install-monitoring-agent.sh"
 
   metadata = {
@@ -47,6 +49,7 @@ resource "google_compute_instance_template" "processor_template" {
   }
 
   service_account {
+# custom service account doesnt work by some reason
 #    email = google_service_account.gce_default_sa.email
     scopes = [
       "https://www.googleapis.com/auth/devstorage.read_only",
@@ -74,8 +77,37 @@ resource "google_compute_instance_template" "processor_template" {
 
 resource "google_compute_target_pool" "default" {
   provider = google-beta
-  name = "my-target-pool"
+  name = "proc-target-pool"
   region = var.region
+}
+
+resource "google_compute_health_check" "http-health-check" {
+  name        = "proc-http-health-check"
+  description = "Health check via http"
+
+  timeout_sec         = 10
+  check_interval_sec  = 30
+  healthy_threshold   = 3
+  unhealthy_threshold = 3
+
+  http_health_check {
+    port = "8080"
+    request_path = "/health"
+  }
+}
+
+# allow all access from health check ranges
+resource "google_compute_firewall" "fw_hc" {
+  name          = "l4-ilb-fw-allow-hc"
+  provider      = google-beta
+  direction     = "INGRESS"
+  network       = "default"
+  source_ranges = ["130.211.0.0/22", "35.191.0.0/16", "35.235.240.0/20"]
+  allow {
+    protocol = "tcp"
+    ports = [8080]
+  }
+  source_tags = ["allow-health-check"]
 }
 
 resource "google_compute_instance_group_manager" "default" {
@@ -84,13 +116,19 @@ resource "google_compute_instance_group_manager" "default" {
   name = "processors-group"
   zone = var.zone
 
+  base_instance_name = "processor-instance"
+
   version {
     instance_template = google_compute_instance_template.processor_template.id
     name              = "primary"
   }
 
+  auto_healing_policies {
+    health_check = google_compute_health_check.http-health-check.id
+    initial_delay_sec = 240
+  }
+
   target_pools       = [google_compute_target_pool.default.id]
-  base_instance_name = "proc-instance"
 }
 
 resource "google_compute_autoscaler" "default" {
@@ -106,8 +144,8 @@ resource "google_compute_autoscaler" "default" {
     cooldown_period = 60
 
     metric {
-      name                       = "pubsub.googleapis.com/subscription/num_undelivered_messages"
-      filter                     = "resource.type = pubsub_subscription AND resource.label.subscription_id = incoming_files"
+      name   = "pubsub.googleapis.com/subscription/num_undelivered_messages"
+      filter = "resource.type = pubsub_subscription AND resource.label.subscription_id = incoming_files"
       target = 2
       type = "GAUGE"
     }
