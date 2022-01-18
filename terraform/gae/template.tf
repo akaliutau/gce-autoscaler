@@ -98,7 +98,7 @@ resource "google_compute_health_check" "http-health-check" {
 
 # allow all access from health check ranges
 resource "google_compute_firewall" "fw_hc" {
-  name          = "l4-ilb-fw-allow-hc"
+  name          = "proc-fw-allow-hc"
   provider      = google-beta
   direction     = "INGRESS"
   network       = "default"
