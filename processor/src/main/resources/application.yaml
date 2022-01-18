@@ -1,0 +1,44 @@
+---
+spring:
+  config:
+    activate:
+      on-profile: default
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+---
+server:
+  port: 8080
+
+grpc:
+  client:
+    defaultScheme: dns
+
+management:
+  endpoint:
+    health:
+      show-details: ALWAYS
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+
+  cloud:
+    gcp:
+      pubsub:
+        subscriber:
+          executor-threads: 1
+          parallel-pull-count: 1
+
+reader:
+  time-to-read-sec: 30
