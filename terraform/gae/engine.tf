@@ -7,13 +7,10 @@ resource "google_service_account" "gce_default_sa" {
   project = var.project
 }
 
-resource "google_service_account_iam_binding" "editor-role-sa-iam" {
-  service_account_id = google_service_account.gce_default_sa.name
+resource "google_project_iam_member" "editor-role-sa-iam" {
+  project = var.project
   role               = "roles/editor"
-
-  members = [
-    "serviceAccount:${google_service_account.gce_default_sa.email}",
-  ]
+  member = "serviceAccount:${google_service_account.gce_default_sa.email}"
 }
 
 
