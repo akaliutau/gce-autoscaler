@@ -128,6 +128,8 @@ sudo chmod +x /usr/local/bin/docker-credential-gcr
 sudo docker-credential-gcr configure-docker
 ```
 
+The exact version of helper can be found on releases tab at [docker-credential-gcr - releases](https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases)
+
 then tag the image and push it to the registry:
 
 ```
@@ -188,12 +190,9 @@ terraform apply -destroy
  
 # Testing 
 
-Generate 50 messages using script:
+Generate 50 messages using script or via UI
 
-```
-scripts/message_generator.sh 50
-```
-Observe autoscaling of cluster in action using
+Observe autoscaling of cluster in action using tab MONITORING
 
 
 # References
@@ -261,5 +260,11 @@ sudo docker image rm gcr.io/message-multi-processor/gcp-pubsub:latest
 gcloud services enable <service>
 f.e.
 gcloud services enable container
+```
+
+(2) The following command list all iam policies accociated with account:
+
+```
+gcloud projects get-iam-policy <project_id>
 ```
 

@@ -8,7 +8,7 @@ This module itself does not launch an instance or managed instance group, genera
 
 ```hcl
 module "gce-container" {
-  source = "github.com/terraform-google-modules/terraform-google-container-vm"
+  source = "<relative path to the gce-container folder>"
   version = "0.1.0"
 
   container = {

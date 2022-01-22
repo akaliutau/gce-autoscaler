@@ -50,7 +50,7 @@ resource "google_compute_instance_template" "processor_template" {
 
   service_account {
 # custom service account doesnt work by some reason
-#    email = google_service_account.gce_default_sa.email
+    email = google_service_account.gce_default_sa.email
     scopes = [
       "https://www.googleapis.com/auth/devstorage.read_only",
       "https://www.googleapis.com/auth/logging.write",
