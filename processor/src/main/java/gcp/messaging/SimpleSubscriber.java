@@ -11,16 +11,19 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 @Slf4j
 public class SimpleSubscriber implements AutoCloseable {
 
+    private static final long terminationTimeoutSec = 60;
     private final ProjectSubscriptionName subsName;
     private final Subscriber subscriber;
 
     @Setter
-    private boolean ackMessage = true;
+    volatile private boolean ackMessage = true;
 
     SimpleSubscriber(String projectId, String subscriptionName, Consumer<PubsubMessage> onMessage) throws IOException {
         // process only 1 message in any time
@@ -55,10 +58,12 @@ public class SimpleSubscriber implements AutoCloseable {
 
 
     @Override
-    public void close() {
-        this.ackMessage = false;
-        if (subscriber != null)
-            // Shut down the subscriber after 30s. Stop receiving messages.
+    public void close() throws TimeoutException {
+        if (subscriber != null) {
+            log.info("subscriber.shutdown started");
+            // Shut down the subscriber after max delay in terminationTimeoutSecs.
             subscriber.stopAsync();
+            log.info("subscriber.shutdown completed");
+        }
     }
 }

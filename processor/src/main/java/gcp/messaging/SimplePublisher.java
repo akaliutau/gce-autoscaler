@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class SimplePublisher implements AutoCloseable {
 
+    private static final long terminationTimeoutSec = 60;
     private final Publisher publisher;
 
     SimplePublisher(String projectId, String topicId) throws IOException {
@@ -75,8 +76,10 @@ public class SimplePublisher implements AutoCloseable {
         if (publisher != null) {
             try {
                 // When finished with the publisher, shutdown to free up resources.
+                log.info("publisher.shutdown started");
                 publisher.shutdown();
-                publisher.awaitTermination(1, TimeUnit.MINUTES);
+                publisher.awaitTermination(terminationTimeoutSec, TimeUnit.SECONDS);
+                log.info("publisher.shutdown completed");
             } catch (InterruptedException e) {
                 log.error(e.getMessage());
             }

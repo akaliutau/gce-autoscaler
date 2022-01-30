@@ -105,6 +105,7 @@ After successful creation project_id must be visible via command `gcloud project
 (3) Build an image with app and push it to GCloud private docker registry, f.e. :
 
 ```
+mvn clean package -DskipTests
 sudo docker build -t processor:0.0.1 ./processor/
 ```
 

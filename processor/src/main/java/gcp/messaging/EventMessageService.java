@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EventMessageService {
 
-    private int processingTimeSec = 30;
+    private final static int minProcessingTimeSec = 10;
+    private final  static int maxProcessingTimeSec = 100;
+    private final  static int waitingCycles = 12;
+    private final  static int waitingTime = 10;
 
     private static final Gson gson = new Gson().newBuilder().setPrettyPrinting().create();
 
@@ -38,8 +42,6 @@ public class EventMessageService {
         this.state = state;
         this.state.setStatus(ServiceState.ServiceStatus.WORKING);
         log.info("creating an EventMessageService for project = {}", projectId);
-        log.info("processingTimeSec= {}", this.processingTimeSec);
-
     }
 
     private Consumer<PubsubMessage> onMessage() {
@@ -51,34 +53,39 @@ public class EventMessageService {
             log.info("Message: {} ", msg);
             log.info("Updating state");
             state.setMessage(message);
-            log.info("Start processing");
+            int processingTimeSec = (int) (minProcessingTimeSec + Math.random() * maxProcessingTimeSec);
+            log.info("Start processing msg#{}, time to process is {}s", msg.get("id"), processingTimeSec);
             try {
-                Thread.sleep(processingTimeSec * 1000);
+                 Thread.sleep(processingTimeSec * 1000);
             } catch (InterruptedException e) {
                 log.error(e.getMessage());
                 state.removeMessage(message);
                 return;
             }
-            log.info("Finish processing");
+            log.info("Finish processing msg#{}", msg.get("id"));
             this.processedMessagesPub.publish(message.getData().toStringUtf8());
             state.removeMessage(message);
         };
     }
 
-    public void close() {
+    public void close() throws TimeoutException, InterruptedException {
         this.state.setStatus(ServiceState.ServiceStatus.STOPPING);
-        processedMessagesPub.close();
-        incomingMessagesSub.close();
+        this.incomingMessagesSub.setAckMessage(false);
+        log.warn("Started draining phase");
+        int totalWaitingTime = 0;
+        for (int i = 0; i < waitingCycles && this.state.hasUnfinishedWork(); i++){
+            log.warn("Still have unfinished work, waiting for {}s", totalWaitingTime);
+            totalWaitingTime += waitingTime;
+            Thread.sleep(waitingTime * 1000);
+        }
+        log.warn("Completed draining phase");
         if (state.hasUnfinishedWork()){
             log.warn("Re-publish unfinished work");
             incomingMessagesPub.publish(state.getMessageMap().values().stream().map(m -> m.getData().toStringUtf8()).collect(Collectors.toList()));
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                log.error(e.getMessage());
-            }
-            incomingMessagesPub.close();
         }
+        incomingMessagesPub.close();
+        incomingMessagesSub.close();
+        processedMessagesPub.close();
     }
 
 }
