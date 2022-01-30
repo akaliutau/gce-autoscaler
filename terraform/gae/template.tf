@@ -41,7 +41,7 @@ resource "google_compute_instance_template" "processor_template" {
 
   tags = ["allow-firewall-check", "http-server"]
 
-  metadata_startup_script = "#!/bin/bash\ncurl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh\nsudo bash install-monitoring-agent.sh"
+  metadata_startup_script = "#!/bin/bash\ncurl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh\nsudo bash install-monitoring-agent.sh\nmkdir -p /etc/systemd/system/docker.service.d\nprintf \"[Service]\\nExecStop=/bin/sh -c 'docker stop --time 90 \\$(docker ps -q) | sleep 90s'\" > /etc/systemd/system/docker.service.d/override.conf"
 
   metadata = {
     google-logging-enabled = "true"
@@ -151,9 +151,9 @@ resource "google_compute_autoscaler" "default" {
     }
 
     scale_down_control {
-      time_window_sec = 300
+      time_window_sec = 60
       max_scaled_down_replicas {
-        percent = 80
+        fixed = 1
       }
     }
   }

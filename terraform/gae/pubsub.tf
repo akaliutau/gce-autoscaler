@@ -32,3 +32,20 @@ resource "google_pubsub_subscription" "processed_files" {
     ttl = "" # never
   }
 }
+
+resource "google_pubsub_topic" "info_channel" {
+  count = 1
+  name = "info_channel"
+}
+
+resource "google_pubsub_subscription" "info_channel" {
+  count = 1
+  name = "info_channel"
+  topic = google_pubsub_topic.info_channel[0].name
+  ack_deadline_seconds = 600
+
+  expiration_policy {
+    ttl = "" # never
+  }
+}
+

@@ -134,8 +134,8 @@ The exact version of helper can be found on releases tab at [docker-credential-g
 then tag the image and push it to the registry:
 
 ```
-sudo docker tag processor:0.0.1 gcr.io/$GOOGLE_CLOUD_PROJECT/processor:v1
-sudo docker push gcr.io/$GOOGLE_CLOUD_PROJECT/processor:v1
+sudo docker tag processor:0.0.1 eu.gcr.io/$GOOGLE_CLOUD_PROJECT/processor:v1
+sudo docker push eu.gcr.io/$GOOGLE_CLOUD_PROJECT/processor:v1
 ```
 
 (5) Verify the pulling docker image from GCP registry: test the image with the following command, 
@@ -146,7 +146,7 @@ sudo docker run -ti --rm -p 8080:8080 \
   --env=GOOGLE_CLOUD_PROJECT=$GOOGLE_CLOUD_PROJECT \
   --env=GOOGLE_APPLICATION_CREDENTIALS=/secrets/adc.json \
   --volume=$GOOGLE_APPLICATION_CREDENTIALS:/secrets/adc.json \
-  gcr.io/$GOOGLE_CLOUD_PROJECT/processor:v1
+  eu.gcr.io/$GOOGLE_CLOUD_PROJECT/processor:v1
 ```
 
 (6) Create infrastructure using Terraform:
@@ -204,6 +204,9 @@ Observe autoscaling of cluster in action using tab MONITORING
 
 [3] https://stackoverflow.com/questions/44130165/cloud-api-access-scopes
 
+[4] https://cloud.google.com/compute/docs/shutdownscript#limitations
+
+[5] https://cloud.google.com/compute/docs/instances/create-use-preemptible#handle_preemption
 
 # Appendix 1. Terraform installation on Ubuntu 20.04 LTS
 
@@ -268,4 +271,3 @@ gcloud services enable container
 ```
 gcloud projects get-iam-policy <project_id>
 ```
-

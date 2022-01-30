@@ -21,13 +21,14 @@ public class EventMessageService {
 
     private final static int minProcessingTimeSec = 10;
     private final  static int maxProcessingTimeSec = 100;
-    private final  static int waitingCycles = 12;
+    private final  static int waitingCycles = 6;
     private final  static int waitingTime = 10;
 
     private static final Gson gson = new Gson().newBuilder().setPrettyPrinting().create();
 
     private SimplePublisher processedMessagesPub;
     private SimplePublisher incomingMessagesPub;// used for recovery only
+    private SimplePublisher infoChannelPub;     // used for recovery only
     private SimpleSubscriber incomingMessagesSub;
 
     @Getter
@@ -37,6 +38,7 @@ public class EventMessageService {
         String projectId = env.getRequiredProperty("GOOGLE_CLOUD_PROJECT");
         processedMessagesPub = new SimplePublisher(projectId, "processed_files");
         incomingMessagesPub = new SimplePublisher(projectId, "incoming_files");// used for recovery only
+        infoChannelPub = new SimplePublisher(projectId, "info_channel");  // used for recovery only
         incomingMessagesSub = new SimpleSubscriber(projectId, "incoming_files", onMessage());
         incomingMessagesSub.start();
         this.state = state;
@@ -72,13 +74,16 @@ public class EventMessageService {
         this.state.setStatus(ServiceState.ServiceStatus.STOPPING);
         this.incomingMessagesSub.setAckMessage(false);
         log.warn("Started draining phase");
+        infoChannelPub.publish("Started draining phase: \n" + this.state.toString());
         int totalWaitingTime = 0;
         for (int i = 0; i < waitingCycles && this.state.hasUnfinishedWork(); i++){
             log.warn("Still have unfinished work, waiting for {}s", totalWaitingTime);
+            infoChannelPub.publish("Still have unfinished work, totalWaiting time: "+ totalWaitingTime +", state size = "+ this.state.size());
             totalWaitingTime += waitingTime;
             Thread.sleep(waitingTime * 1000);
         }
         log.warn("Completed draining phase");
+        infoChannelPub.publish("Completed draining phase: \n" + this.state.toString());
         if (state.hasUnfinishedWork()){
             log.warn("Re-publish unfinished work");
             incomingMessagesPub.publish(state.getMessageMap().values().stream().map(m -> m.getData().toStringUtf8()).collect(Collectors.toList()));
@@ -86,6 +91,7 @@ public class EventMessageService {
         incomingMessagesPub.close();
         incomingMessagesSub.close();
         processedMessagesPub.close();
+        infoChannelPub.close();
     }
 
 }

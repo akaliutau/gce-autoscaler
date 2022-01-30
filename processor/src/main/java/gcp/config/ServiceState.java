@@ -38,7 +38,7 @@ public class ServiceState {
         return !this.messageMap.isEmpty();
     }
 
-    public void print() {
+    void print() {
         log.info("      Current state");
         log.info("----------------------------------------");
         if (!hasUnfinishedWork()){
@@ -50,6 +50,24 @@ public class ServiceState {
         }
         log.info("----------------------------------------");
     }
+
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        if (!hasUnfinishedWork()){
+            sb.append("Empty");
+        }else{
+            for (Map.Entry<String, PubsubMessage> msg : messageMap.entrySet()){
+                sb.append(String.format("%s => %s", msg.getKey(), msg.getValue().getData().toStringUtf8()));
+                sb.append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    public int size() {
+        return this.messageMap.size();
+    }
+
 
 
 }
