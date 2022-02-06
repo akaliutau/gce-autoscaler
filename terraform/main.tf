@@ -15,15 +15,19 @@ variable "google_app_creds" {
   default = ""
 }
 
+variable "image" {
+  default = "eu.gcr.io/message-multi-processor/processor:v2"
+}
+
 #####################################################################
 # Modules
 #####################################################################
 
-
-module "gae" {
-  source = "./gae"
+module "gce" {
+  source = "./gce"
 
   project = var.project
   region = var.region
   zone = var.zone
+  image = var.image
 }

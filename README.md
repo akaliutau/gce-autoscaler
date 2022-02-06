@@ -271,3 +271,24 @@ gcloud services enable container
 ```
 gcloud projects get-iam-policy <project_id>
 ```
+
+(3) If instance failed to start, ssh to it and check start up logs using command:
+
+```
+sudo journalctl -u konlet-startup
+```
+
+# Appendix 5. Terraform observations
+
+(1) Template is just a record in internal GCP database, it does not validate the references, so one can create template 
+BEFORE creation other resources (f.e. docker images in gcr)
+
+(2) If resources have been created outside Terraform, they can be imported into state using the `import` command, f.e.:
+
+```
+terraform import module.gce.google_pubsub_subscription.incoming_files incoming_files
+```
+where `module.gce.google_pubsub_subscription.incoming_files` is the path to resource in TF templates, and
+    `incoming_files` (or `projects/message-multi-processor/subscriptions/incoming_files`) is the id of existing resource
+    
+The resource name must follow [known conventions](https://cloud.google.com/pubsub/docs/admin#resource_names)
