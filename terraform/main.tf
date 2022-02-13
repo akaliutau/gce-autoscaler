@@ -15,6 +15,10 @@ variable "google_app_creds" {
   default = ""
 }
 
+variable "ver" {
+  default = "1"
+}
+
 variable "image" {
   default = "eu.gcr.io/message-multi-processor/processor:v1"
 }
@@ -30,4 +34,5 @@ module "gce" {
   region = var.region
   zone = var.zone
   image = var.image
+  ver = var.ver
 }

@@ -16,7 +16,7 @@ module "gce-container" {
 }
 
 resource "google_compute_instance_template" "processor_template" {
-  name         = "proc-template-1"
+  name         = join("-", ["processor-template", var.ver])
   machine_type = "e2-micro"
 
   disk {
@@ -114,7 +114,8 @@ resource "google_compute_firewall" "fw_hc" {
 resource "google_compute_instance_group_manager" "default" {
   provider = google-beta
 
-  name = "processors-group"
+  name = join("-", [google_compute_instance_template.processor_template.name, "grp"])
+
   zone = var.zone
 
   base_instance_name = "processor-instance"
@@ -130,6 +131,10 @@ resource "google_compute_instance_group_manager" "default" {
   }
 
   target_pools       = [google_compute_target_pool.default.id]
+
+  depends_on = [
+    google_compute_instance_template.processor_template
+  ]
 }
 
 resource "google_compute_autoscaler" "default" {
@@ -140,7 +145,7 @@ resource "google_compute_autoscaler" "default" {
   target = google_compute_instance_group_manager.default.id
 
   autoscaling_policy {
-    max_replicas    = 5
+    max_replicas    = 4
     min_replicas    = 1
     cooldown_period = 60
 
