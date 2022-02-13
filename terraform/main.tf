@@ -16,7 +16,7 @@ variable "google_app_creds" {
 }
 
 variable "image" {
-  default = "eu.gcr.io/message-multi-processor/processor:v2"
+  default = "eu.gcr.io/message-multi-processor/processor:v1"
 }
 
 #####################################################################
