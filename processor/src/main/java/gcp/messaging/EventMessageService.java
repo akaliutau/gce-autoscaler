@@ -36,6 +36,7 @@ public class EventMessageService {
 
     public EventMessageService(ServiceState state, Environment env) throws IOException {
         String projectId = env.getRequiredProperty("GOOGLE_CLOUD_PROJECT");
+        String mode = env.getRequiredProperty("MODE");
         processedMessagesPub = new SimplePublisher(projectId, "processed_files");
         incomingMessagesPub = new SimplePublisher(projectId, "incoming_files");// used for recovery only
         infoChannelPub = new SimplePublisher(projectId, "info_channel");  // used for recovery only
@@ -44,6 +45,7 @@ public class EventMessageService {
         this.state = state;
         this.state.setStatus(ServiceState.ServiceStatus.WORKING);
         log.info("creating an EventMessageService for project = {}", projectId);
+        log.info("mode = {}", mode);
     }
 
     private Consumer<PubsubMessage> onMessage() {

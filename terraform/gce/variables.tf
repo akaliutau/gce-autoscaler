@@ -4,8 +4,8 @@
 variable "project" {}
 variable "region" {}
 variable "zone" {}
-variable "image" {}
 variable "ver" {}
+variable "env" {}
 
 
 
