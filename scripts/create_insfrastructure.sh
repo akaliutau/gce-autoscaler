@@ -87,7 +87,7 @@ gcloud compute instance-templates create-with-container proc-template-1 \
         --tags=allow-firewall-check,http-server \
         --container-image=$APP_IMAGE \
         --container-restart-policy=always \
-        --container-env=GOOGLE_CLOUD_PROJECT=$PROJECT \
+        --container-env-file="/home/alex/projects/gcp-autoscaler/terraform/scripts/vars.env" \
         --container-tty \
         --metadata-from-file=startup-script=$THIS/startup_script.sh \
         --boot-disk-device-name=persistent-disk-0 \

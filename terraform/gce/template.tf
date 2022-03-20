@@ -5,7 +5,7 @@ module "gce-container" {
 
   container = {
     image    = join("/", ["eu.gcr.io", var.project, "processor:${var.ver}"])
-    env-file = file(var.env)
+    env = [ for tuple in regexall("(.*)=(.*)", file(var.env)) : { name = tuple[0], value = tuple[1]} ]
   }
 
   restart_policy = "Always"

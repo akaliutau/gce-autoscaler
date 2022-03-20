@@ -20,7 +20,7 @@ variable "ver" {
 }
 
 variable "env" {
-  default = "./scripts/env.template"
+  default = "./scripts/vars.env"
 }
 
 #####################################################################
